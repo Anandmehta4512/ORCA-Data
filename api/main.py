@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 import psycopg
+import os
 from psycopg.rows import dict_row
 
 app = FastAPI(title="ORCA API")
@@ -7,11 +8,7 @@ app = FastAPI(title="ORCA API")
 
 def get_db():
     return psycopg.connect(
-        host="127.0.0.1",
-        port=5432,
-        dbname="orca",
-        user="orca_user",
-        password="orca_password",
+        os.environ["DATABASE_URL"],
         row_factory=dict_row,
     )
 
