@@ -1,7 +1,8 @@
-import time
-from apscheduler.schedulers.background import BackgroundScheduler
+
+import os
 import psycopg
 import requests
+
 
 LAT = 8.75
 LON = 78.10
@@ -12,21 +13,11 @@ API_URL = (
     f"hourly=wave_height,wave_direction&"
     f"timezone=UTC&forecast_days=1"
 )
-
-DB_CONFIG = {
-    "host": "127.0.0.1",
-    "port": 5432,
-    "dbname": "orca",
-    "user": "orca_user",
-    "password": "orca_password",
-}
-
-
 def run_pipeline():
     print("\n[30-MIN PIPELINE] Fetching latest marine forecast...")
     run_id = None
     try:
-        with psycopg.connect(**DB_CONFIG) as conn:
+        with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -89,7 +80,7 @@ def run_pipeline():
     except Exception as err:
         print(f"[ERROR] Pipeline run failed: {err}")
         if run_id:
-            with psycopg.connect(**DB_CONFIG) as conn:
+            with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -104,14 +95,3 @@ def run_pipeline():
 
 if __name__ == "__main__":
     run_pipeline()
-
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(run_pipeline, "interval", minutes=30)
-    scheduler.start()
-    print("🚀 Pipeline Active: Automatically syncing every 30 minutes.")
-
-    try:
-        while True:
-            time.sleep(2)
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
