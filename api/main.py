@@ -92,7 +92,7 @@ def get_latest_forecast(
         valid_time,
         ROUND((ST_Distance(location, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000)::numeric, 2) AS distance_km
     FROM forecasts
-    ORDER BY location <-> ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, valid_time ASC
+    ORDER BY location <-> ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, valid_time DESC
     LIMIT 6;
     """
     with get_db() as conn:
